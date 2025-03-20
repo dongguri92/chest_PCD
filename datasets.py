@@ -91,45 +91,6 @@ class PCDDataset(data.Dataset):
 
         return img_transformed, label
 
-'''
-
-train_dataset = PCDDataset(
-    'train', transform = train_transform
-)
-val_dataset = PCDDataset(
-    'val', transform=val_transform
-)
-
-# 동작 확인
-
-index = 0
-print(train_dataset.__getitem__(index)[0].size())
-print(train_dataset.__getitem__(index)[1])
-
-print(val_dataset.__getitem__(index)[0].size())
-print(val_dataset.__getitem__(index)[1])
-
-print(train_dataset.__len__())
-print(val_dataset.__len__())
-
-################### dataloader작성하고 함수화하기
-
-
-# batch size
-batch_size = 4
-
-# train_dataset 데이터 로더 작성
-train_dataloader = torch.utils.data.DataLoader(
-    train_dataset, batch_size=batch_size, shuffle=True
-)
-
-# validation_dataset 데이터 로더 작성
-validation_dataloader = torch.utils.data.DataLoader(
-    val_dataset, batch_size=batch_size, shuffle=True
-)
-
-'''
-
 def dataloader(batch_size):
     train_dataset = PCDDataset('train', transform = train_transform)
     val_dataset = PCDDataset('val', transform=val_transform)
