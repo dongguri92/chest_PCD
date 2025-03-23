@@ -17,7 +17,7 @@ class SupervisedLearning():
         self.model = models.modeltype(self.model_name)
         self.model = self.model.to(self.device) # 이전 내 코드에서는 이게 밖에 있었어서 train함수 정해줄때 model을 따로 설정함
 
-        print("Completed loading your networdk.")
+        print("Completed loading your network.")
 
         self.criterion = nn.CrossEntropyLoss()
 
@@ -65,12 +65,16 @@ class SupervisedLearning():
                 loss = self.criterion(output, y)
                 prob, pred = torch.max(output.data, 1)
                 pred = pred.type(torch.float32)
-                pred = pred.cput().detach().numpy()
+                pred = pred.cpu().detach().numpy()
+
+                y = y.cpu().detach().numpy
 
                 valid_loss += loss.item()
-                y = y.cpu().detach().numpy
-                valid_accuracy /= len(self.validation_loader)
-                valid_loss /= len(self.validation_loader)
+                valid_accuracy += (pred == y.astype(np.uint8)).mean() # batch 단위 accuracy를 더함
+
+            valid_accuracy /= len(self.validation_loader)
+            valid_loss /= len(self.validation_loader)
+            
             print(f"EPOCH:{epoch + 1}, Loss:{valid_loss}, Accuracy:{valid_accuracy}")
 
         # 모델 저장
