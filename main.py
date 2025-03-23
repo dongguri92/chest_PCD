@@ -1,5 +1,5 @@
 import argparse # terminal에서 실행시키기 위한 것
-import training
+import training_evaluating
 import datasets
 
 if __name__ == "__main__":
@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr', default=0.0005, type=float, help='learning rate')
     parser.add_argument('--l2', default=0.0005, type=float, help='weight decay')
     parser.add_argument('--model_name', default='efficientnet', type=str, help='model name')
-    parser.add_argument('--pretrained', default=None, type=str, help='pretrained model')
+    parser.add_argument('--pretrained', default='./save/efficient_0323.pth', type=str, help='pretrained model')
     parser.add_argument('--train', default='train', type=str, help='train and eval')
     args = parser.parse_args()
 
@@ -18,10 +18,15 @@ if __name__ == "__main__":
     train_dataloader, validation_dataloader = datasets.dataloader(args.batch_size)
     print('Completed loading your datasets.')
 
+    test_dataloader = datasets.dataloader_test(args.batch_size)
+    print('Completed loading your datasets.')
+
     # 모델 불러오기 및 학습하기
-    learning = training.SuperviedLearning(train_dataloader, validation_dataloader, args.model_name)
+    learning = training_evaluating.SupervisedLearning(train_dataloader, validation_dataloader, args.model_name)
+
+    evaluating = training_evaluating.eval(test_dataloader, args.pretrained, args.model_name)
 
     if args.train == 'train':
         learning.train(args.epoch, args.lr, args.l2)
     else:
-        print('test')
+        evaluating.test()
