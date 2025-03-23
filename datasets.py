@@ -26,12 +26,18 @@ np.random.seed(1)
 random.seed(1)
 
 USE_CUDA = torch.cuda.is_available()
-DEVICE = torch.device("cuda" if USE_CUDA else "cpt")
+DEVICE = torch.device("cuda" if USE_CUDA else "cpu")
 
-img_paths = glob.glob("./data/train/**/*.dcm", recursive=True)
-print(len(img_paths))
-img_path = img_paths[0]
-print(img_path)
+train_img_paths = glob.glob("./data/train/**/*.dcm", recursive=True)
+print("train dataset length : ", len(train_img_paths))
+train_img_path = train_img_paths[0]
+print(train_img_path)
+
+test_img_paths = glob.glob("./data/test/**/*.dcm", recursive=True)
+print("test dataset length : ", len(test_img_paths))
+test_img_path = test_img_paths[0]
+print(test_img_path)
+
 
 # Dataset
 img_size = 256
@@ -45,6 +51,11 @@ train_transform = transforms.Compose([
 ])
 
 val_transform = transforms.Compose([
+    transforms.Resize((img_size, img_size)),
+    transforms.ToTensor(),
+])
+
+test_transform = transforms.Compose([
     transforms.Resize((img_size, img_size)),
     transforms.ToTensor(),
 ])
@@ -90,6 +101,39 @@ class PCDDataset(data.Dataset):
         img_transformed = self.transform(stack_img)
 
         return img_transformed, label
+    
+class PCDDataset_test(data.Dataset):
+    def __init__(self, transform=None):
+        self.class_to_int = {'normal' : 0, 'mal' : 1}
+        # path
+        self.img_paths = glob.glob("./data/test/**/*.dcm", recursive=True)
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.img_paths)
+    
+    def __getitem__(self, index):
+
+        img_path = self.img_paths[index]
+
+        if 'normal' in img_path:
+            label = np.float32(self.class_to_int['normal'])
+        else:
+            label = np.float32(self.class_to_int['mal'])
+
+        img_origin = pydicom.dcmread(img_path) # 이제 read_file은 없대
+        img = img_origin.pixel_array
+
+        img = exposure.equalize_adapthist(img, clip_limit=1)
+        img = (img * 255).astype(np.uint8)
+        stack = np.stack((img, img, img), axis=2) # channel방향으로 3개 쌓아주기
+
+        stack_img = Image.fromarray(stack, 'RGB') # transform해주기 위해 skimage.Image로 변환, RGB로도 변환
+
+        # transform
+        img_transformed = self.transform(stack_img)
+
+        return img_transformed, label
 
 def dataloader(batch_size):
     train_dataset = PCDDataset('train', transform = train_transform)
@@ -102,3 +146,11 @@ def dataloader(batch_size):
     validation_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
     return train_dataloader, validation_dataloader
+
+def dataloader_test(batch_size):
+    test_dataset = PCDDataset_test(transform = test_transform)
+
+    # train_dataset 데이터 로더 작성
+    test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+    return test_dataloader
