@@ -72,3 +72,7 @@ class SupervisedLearning():
                 valid_accuracy /= len(self.validation_loader)
                 valid_loss /= len(self.validation_loader)
             print(f"EPOCH:{epoch + 1}, Loss:{valid_loss}, Accuracy:{valid_accuracy}")
+
+        # 모델 저장
+        torch.save(self.model.state_dict(), "./logs/efficient_0323.pth")
+        print("saved.....")
