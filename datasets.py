@@ -102,5 +102,3 @@ def dataloader(batch_size):
     validation_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
     return train_dataloader, validation_dataloader
-
-## 다음에 train까지하기, 그리고 tensorboard, test까지 다 짜기
